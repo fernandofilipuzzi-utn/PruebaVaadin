@@ -26,6 +26,14 @@
         <!-- Driver JDBC de SQL Server. La DLL nativa de autenticacion integrada
              (mssql-jdbc_auth-12.6.1.x64.dll) DEBE coincidir con esta version. -->
         <mssql-jdbc.version>12.6.1.jre11</mssql-jdbc.version>
+
+        <!-- Se sobrescriben las versiones que trae Spring Boot 3.2.5 (Mockito 5.7 /
+             ByteBuddy 1.14) por otras mas nuevas: las viejas no saben instrumentar
+             bytecode de JDK modernos (Java 26). Combinado con el flag
+             net.bytebuddy.experimental=true (ver surefire) permite correr los tests
+             con Mockito en JDK 26. -->
+        <mockito.version>5.18.0</mockito.version>
+        <byte-buddy.version>1.17.5</byte-buddy.version>
     </properties>
 
     <!-- BOM de Vaadin: alinea las versiones de todos los modulos Vaadin -->
@@ -75,6 +83,19 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Surefire: ejecuta los tests unitarios.
+                 -Dnet.bytebuddy.experimental=true => ByteBuddy acepta versiones de
+                 class-file aun no reconocidas (Java 26), necesario para Mockito.
+                 -XX:+EnableDynamicAgentLoading => silencia el warning de auto-attach
+                 del agente de Mockito en JDK recientes. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Dnet.bytebuddy.experimental=true -XX:+EnableDynamicAgentLoading</argLine>
+                </configuration>
             </plugin>
 
             <!-- Plugin de Vaadin: compila el frontend (npm/Vite) en el build de produccion -->
