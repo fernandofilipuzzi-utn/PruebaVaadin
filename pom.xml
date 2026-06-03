@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Proyecto padre: Spring Boot administra versiones de dependencias y plugins -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.utn</groupId>
+    <artifactId>prueba-vaadin-personas</artifactId>
+    <version>1.0.0</version>
+    <name>PruebaVaadin - Gestion de Personas</name>
+    <description>Ejemplo Vaadin + Spring Boot con arquitectura por capas (Service Layer)</description>
+
+    <properties>
+        <!-- Java 17 (requisito de Vaadin 24 y Spring Boot 3) -->
+        <java.version>17</java.version>
+        <!-- Plataforma Vaadin: define versiones de todos los componentes Vaadin -->
+        <vaadin.version>24.3.11</vaadin.version>
+        <!-- Driver JDBC de SQL Server. La DLL nativa de autenticacion integrada
+             (mssql-jdbc_auth-12.6.1.x64.dll) DEBE coincidir con esta version. -->
+        <mssql-jdbc.version>12.6.1.jre11</mssql-jdbc.version>
+    </properties>
+
+    <!-- BOM de Vaadin: alinea las versiones de todos los modulos Vaadin -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Vaadin integrado con Spring Boot (capa de presentacion) -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- JPA / Hibernate (capa de persistencia) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Driver JDBC de Microsoft SQL Server -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>${mssql-jdbc.version}</version>
+        </dependency>
+
+        <!-- Testing: JUnit 5 + Mockito + AssertJ (incluidos en el starter) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Empaqueta la aplicacion como JAR ejecutable de Spring Boot -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Plugin de Vaadin: compila el frontend (npm/Vite) en el build de produccion -->
+            <plugin>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+                <version>${vaadin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-frontend</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- Perfil de produccion: genera el bundle optimizado del frontend.
+         Se activa con:  mvn clean package -Pproduction -->
+    <profiles>
+        <profile>
+            <id>production</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>vaadin-core</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>com.vaadin</groupId>
+                            <artifactId>vaadin-dev</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.vaadin</groupId>
+                        <artifactId>vaadin-maven-plugin</artifactId>
+                        <version>${vaadin.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>build-frontend</goal>
+                                </goals>
+                                <phase>compile</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
